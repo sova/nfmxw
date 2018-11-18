@@ -4,6 +4,7 @@
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [clj-social.core :refer [make-social]]))
 
+(def users (atom []))
 (def logins (atom {:username ""
                    :password ""})) ;one-way hash in production
 (def posts (atom {}))
@@ -29,10 +30,18 @@
                (= section :footer) "<h7>some footer</h7>"
                (= section :status-bar) "<div id='sss'></div>"
                (= section :login-area) "<form action='/login' method='post'><label>username:<input id='i_n' name='username'/></label><label>password:<input id='i_p' type='password' name='password'/></label><button id='i_s' type='submit'>login</button></form>"
-               (= section :create-acc) "<form action='/create-acc' method='post'><label>username:<input id='c_n- name='create_username'/></label><label>password1:<input id='c_p1' type='password' name='p1'/></label><label>password2:<input id='c_p2' type='password' name='p2'/></label><button id='c_s' type='submit'>create</button></form>"
+               (= section :create-acc) "<form action='/create-acc' method='post'><label>username:<input id='c_n- name='username'/></label><label>password1:<input id='c_p1' type='password' name='p1'/></label><label>password2:<input id='c_p2' type='password' name='p2'/></label><button id='c_s' type='submit'>create</button></form>"
                (= section :js) "<h6>javascript-hear</h6>")))
 
 
+(defn make-account [u p1 p2]
+  (if (= p1 p2)
+    ;(if (not (some #(= u %) @logins))
+      (swap! users conj u)
+      (swap! logins conj {:username u
+                        :password p2}))
+  (println @users)
+  (println @logins))
 
 
 
@@ -50,8 +59,8 @@
                         (spot-page :js)))
   (GET "/footer" [] (spot-page :footer))
   (GET "/statusbar" [] (spot-page :status-bar))
-  (POST "/login" [username password] (str username password " to be hashed and stored."))
-  (POST "/create-acc" [username p1 p2] (spot-page :logo))
+  (POST "/login" {params :params} (str username password " to be hashed and stored."))
+  (POST "/create-acc" {params :params} (str params));(make-account username p1 p2))
   (route/not-found "Not Found"))
 
 (def entrypoint
